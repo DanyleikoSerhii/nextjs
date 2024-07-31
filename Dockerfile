@@ -1,9 +1,6 @@
 # Stage 1: Build the application
 FROM node:16-alpine AS builder
 
-# Install pnpm globally
-RUN npm install -g pnpm@lates
-
 # Set working directory
 WORKDIR /app
 
