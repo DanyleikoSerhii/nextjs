@@ -1,12 +1,17 @@
+# Stage 1: Build the application
+FROM node:16-alpine AS builder
+
 # Install pnpm globally
-FROM node:21-alpine AS builder
+RUN npm install -g pnpm@latest
+
+# Set working directory
 WORKDIR /app
-COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable
 
+# Copy package.json and pnpm-lock.yaml to the working directory
+COPY package.json pnpm-lock.yaml ./
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm fetch --prod --frozen-lockfile
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm install --prod --frozen-lockfile
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the application code
 COPY . .
@@ -14,19 +19,15 @@ COPY . .
 # Build the Next.js application
 RUN pnpm build
 
-# Use a lighter image for the final build
+# Stage 2: Serve the application
 FROM node:16-alpine AS runner
+
 WORKDIR /app
 
 # Copy the built assets from the builder stage
 COPY --from=builder /app ./
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-USER nextjs
-ENV HOSTNAME 0.0.0.0
+# Expose port
 EXPOSE 3000
 
 # Start the application
