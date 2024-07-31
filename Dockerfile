@@ -2,7 +2,7 @@
 FROM node:16-alpine AS builder
 
 # Install pnpm globally
-RUN npm install -g pnpm@latest
+RUN npm install -g pnpm@lates
 
 # Set working directory
 WORKDIR /app
@@ -11,13 +11,12 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
-
 # Copy the rest of the application code
 COPY . .
 
 # Build the Next.js application
-RUN pnpm build
+RUN npm install
+RUN npm build
 
 # Stage 2: Serve the application
 FROM node:16-alpine AS runner
@@ -31,4 +30,4 @@ COPY --from=builder /app ./
 EXPOSE 3000
 
 # Start the application
-CMD ["pnpm", "start"]
+CMD ["npm", "start"]
