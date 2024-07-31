@@ -39,7 +39,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies with verbose logging
-RUN npm install --production --loglevel verbose
+RUN npm install --force
 
 # Copy the rest of the application code
 COPY . .
