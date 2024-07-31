@@ -8,7 +8,7 @@ RUN npm install -g pnpm@lates
 WORKDIR /app
 
 # Copy package.json and pnpm-lock.yaml to the working directory
-COPY package.json pnpm-lock.yaml ./
+COPY package.json package-lock.json ./
 
 # Install dependencies
 # Copy the rest of the application code
