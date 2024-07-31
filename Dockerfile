@@ -1,15 +1,12 @@
 # Install pnpm globally
 FROM node:21-alpine AS builder
-RUN npm install -g pnpm@latest
-
-# Set working directory
 WORKDIR /app
+COPY package.json pnpm-lock.yaml* ./
+RUN corepack enable
 
-# Copy package.json and pnpm-lock.yaml to the working directory
-COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm fetch --prod --frozen-lockfile
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm install --prod --frozen-lockfile
 
 # Copy the rest of the application code
 COPY . .
@@ -24,8 +21,13 @@ WORKDIR /app
 # Copy the built assets from the builder stage
 COPY --from=builder /app ./
 
-# Expose port
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+USER nextjs
+ENV HOSTNAME 0.0.0.0
 EXPOSE 3000
 
 # Start the application
-CMD [ "node", "./server.js" ]
+CMD ["pnpm", "start"]
