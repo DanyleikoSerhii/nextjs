@@ -1,47 +1,31 @@
-# Stage 1: Install dependencies and build the app
-FROM node:16-alpine AS builder
+# Install pnpm globally
+FROM node:21-alpine AS builder
+RUN npm install -g pnpm@latest
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and pnpm-lock.yaml
+# Copy package.json and pnpm-lock.yaml to the working directory
 COPY package.json pnpm-lock.yaml ./
-
-# Install pnpm
-RUN npm install -g pnpm
 
 # Install dependencies
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
-# Copy the rest of the app
+# Copy the rest of the application code
 COPY . .
 
-# Build the app
-RUN pnpm run build
+# Build the Next.js application
+RUN pnpm build
 
-# Stage 2: Production image, copy built assets and install dependencies
-FROM node:16-alpine
-
-# Set working directory
+# Use a lighter image for the final build
+FROM node:16-alpine AS runner
 WORKDIR /app
 
-# Copy package.json and pnpm-lock.yaml
-COPY package.json pnpm-lock.yaml ./
+# Copy the built assets from the builder stage
+COPY --from=builder /app ./
 
-# Install pnpm
-RUN npm install -g pnpm
+# Expose port
+EXPOSE 3000
 
-# Install only production dependencies
-RUN pnpm install
-
-# Copy built assets from builder stage
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-
-# Copy rest of the app
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/next.config.js ./next.config.js
-
-# Start the app
+# Start the application
 CMD ["pnpm", "start"]
