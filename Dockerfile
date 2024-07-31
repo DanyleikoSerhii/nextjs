@@ -28,4 +28,4 @@ COPY --from=builder /app ./
 EXPOSE 3000
 
 # Start the application
-CMD ["pnpm", "start"]
+CMD [ "node", "./server.js" ]
