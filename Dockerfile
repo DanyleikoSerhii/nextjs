@@ -32,7 +32,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm
 
 # Install only production dependencies
-RUN pnpm install --prod
+RUN pnpm install
 
 # Copy built assets from builder stage
 COPY --from=builder /app/.next ./.next
